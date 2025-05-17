@@ -6,7 +6,7 @@ from scipy.optimize import minimize
 class MIDASModel:
     """Classe qui implémente le modèle MIDAS pour prévision de volatilité"""
     
-    def __init__(self, kmax=66, options_dict = {'maxiter': 10}):
+    def __init__(self, kmax=66, options_dict = {'maxiter': 1000}):
         """
         Parameters:
         kmax (int): nombre max de lags à prendre en compte
@@ -92,9 +92,10 @@ class MIDASModel:
                 predictions.append(pred)
             
             # valeurs réelles
-            actual = y[self.kmax:len(X) - horizon]
+            actual = y[:len(X) - horizon - self.kmax]
             
             # calcul de la loss: HMSE
+            actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         
@@ -130,11 +131,11 @@ class MIDASModel:
         Returns:
         dict: params estimés
         """
-        def loss_function(params_dict):
+        def loss_function(params):
             """
             nested function pour calculer la loss
             """
-            beta0, beta1, beta2, theta1_pos, theta2_pos, theta1_neg, theta2_neg = params_dict
+            beta0, beta1, beta2, theta1_pos, theta2_pos, theta1_neg, theta2_neg = params
             
             predictions = []
             
@@ -147,8 +148,9 @@ class MIDASModel:
                 predictions.append(pred)
             
             # valeurs réelles
-            actual = y[self.kmax:min(len(X_pos), len(X_neg)) - horizon]
+            actual = y[:min(len(X_pos), len(X_neg)) - horizon - self.kmax]
             # calcul de la loss: HMSE
+            actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         
@@ -189,11 +191,11 @@ class MIDASModel:
         Returns:
         dict: paramètres estimés
         """
-        def loss_function(params_dict):
+        def loss_function(params):
             """
             nested function pour calculer la loss
             """
-            beta0, beta1, beta2, theta1_crv, theta2_crv, theta1_cj, theta2_cj = params_dict
+            beta0, beta1, beta2, theta1_crv, theta2_crv, theta1_cj, theta2_cj = params
             
             predictions = []
             
@@ -208,8 +210,9 @@ class MIDASModel:
                 predictions.append(pred)
             
             # valeurs réelles
-            actual = y[self.kmax:min(len(X_crv), len(X_cj)) - horizon]
+            actual = y[:min(len(X_crv), len(X_cj)) - horizon - self.kmax]
             # calcul de la loss: HMSE
+            actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         
@@ -247,11 +250,11 @@ class MIDASModel:
         Returns:
         dict: params estimés
         """
-        def loss_function(params_dict):
+        def loss_function(params):
             """
             nested function pour calculer la loss
             """
-            beta0, beta1, gamma1, theta1_rv, theta2_rv, theta1_gpr, theta2_gpr = params_dict
+            beta0, beta1, gamma1, theta1_rv, theta2_rv, theta1_gpr, theta2_gpr = params
             
             predictions = []
             
@@ -265,8 +268,9 @@ class MIDASModel:
                 pred = beta0 + beta1 * weighted_X_rv + gamma1 * weighted_X_gpr
                 predictions.append(pred)
             # valeurs réalisés
-            actual = y[self.kmax:min(len(X_rv), len(X_gpr)) - horizon]
+            actual = y[:min(len(X_rv), len(X_gpr)) - horizon - self.kmax]
             # calcul de la loss: HMSE
+            actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         
@@ -305,12 +309,12 @@ class MIDASModel:
         Returns:
         dict: params estimés
         """
-        def loss_function(params_dict):
+        def loss_function(params):
             """
             nested function pour calculer la loss
             """
-            beta0, beta1, beta2, gamma1 = params_dict[:4]
-            theta1_pos, theta2_pos, theta1_neg, theta2_neg, theta1_gpr, theta2_gpr = params_dict[4:]
+            beta0, beta1, beta2, gamma1 = params[:4]
+            theta1_pos, theta2_pos, theta1_neg, theta2_neg, theta1_gpr, theta2_gpr = params[4:]
             
             predictions = []
             
@@ -328,8 +332,9 @@ class MIDASModel:
                 predictions.append(pred)
             
             # valeurs realisées
-            actual = y[self.kmax:min_len - horizon]
+            actual = y[:min_len - horizon - self.kmax]
             # calcul de la loss: HMSE
+            actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         
@@ -372,12 +377,12 @@ class MIDASModel:
         Returns:
         dict: params estimés
         """
-        def loss_function(params_dict):
+        def loss_function(params):
             """
             nested function pour calculer la loss
             """
-            beta0, beta1, beta2, gamma1 = params_dict[:4]
-            theta1_crv, theta2_crv, theta1_cj, theta2_cj, theta1_gpr, theta2_gpr = params_dict[4:]
+            beta0, beta1, beta2, gamma1 = params[:4]
+            theta1_crv, theta2_crv, theta1_cj, theta2_cj, theta1_gpr, theta2_gpr = params[4:]
             
             predictions = []
             
@@ -395,8 +400,9 @@ class MIDASModel:
                 predictions.append(pred)
 
             # valeurs réalisées
-            actual = y[self.kmax:min_len - horizon]
+            actual = y[:min_len - horizon - self.kmax]
             # calcul de la loss: HMSE
+            actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         

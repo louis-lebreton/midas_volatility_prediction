@@ -11,7 +11,6 @@ class GPRDecomposer:
     """
     
     def __init__(self):
-        """Initialisation de la classe."""
         self.model = None
         self.results = None
         self.v1 = None  # constante (v1)
@@ -75,6 +74,8 @@ class GPRDecomposer:
     
 
 if __name__ == '__main__':
+    
+    # test
     df_gpr = pd.read_excel('data/raw/data_gpr_daily_recent.xls', usecols=range(9))
     df_gpr['DAY'] = pd.to_datetime(df_gpr['DAY'], format='%Y%m%d')
     df_gpr.index = df_gpr['DAY']

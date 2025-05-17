@@ -48,9 +48,9 @@ class RealizedVolatilityMeasure:
         pd.DataFrame: df contenant la realized volatility (RV)
         """
         # rv par jour
-        rv_by_month = self.data.groupby(pd.Grouper(freq='ME'))['return'].apply(lambda x: np.sum(x**2)) # à modifier ----------------------------
+        rv_by_day = self.data.groupby(pd.Grouper(freq='D'))['return'].apply(lambda x: np.sum(x**2))
         # data par jour
-        self.data_daily = rv_by_month.to_frame(name='rv')
+        self.data_daily = rv_by_day.to_frame(name='rv')
         
         return self.data_daily
     
@@ -62,12 +62,12 @@ class RealizedVolatilityMeasure:
         pd.DataFrame: df contenant RVt+ et RVt-
         """
         # RVt+
-        rv_pos_by_day = self.data.groupby(pd.Grouper(freq='ME')).apply(  # ------------------------------------------------
+        rv_pos_by_day = self.data.groupby(pd.Grouper(freq='D')).apply(
             lambda x: np.sum(x.loc[x['return'] > 0, 'return']**2)
         )
         
         # RVt-
-        rv_neg_by_day = self.data.groupby(pd.Grouper(freq='ME')).apply( # ------------------------------------------------
+        rv_neg_by_day = self.data.groupby(pd.Grouper(freq='D')).apply(
             lambda x: np.sum(x.loc[x['return'] < 0, 'return']**2)
         )
         
@@ -92,11 +92,11 @@ class RealizedVolatilityMeasure:
         u1_squared_inv = 1 / (self.u1 ** 2)
         
         # somme de returns absolus
-        bpv_by_month = self.data.groupby(pd.Grouper(freq='ME'))['return'].apply( # à modifier ----------------------------------------------------
+        bpv_by_day = self.data.groupby(pd.Grouper(freq='D'))['return'].apply(
             lambda x: u1_squared_inv * np.sum(np.abs(x.values[1:]) * np.abs(x.values[:-1]))
         )
         
-        data_bpv = bpv_by_month.to_frame(name='bpv')
+        data_bpv = bpv_by_day.to_frame(name='bpv')
         # ajout au data_daily
         self.data_daily = pd.merge(self.data_daily, data_bpv, 
                                   left_index=True, right_index=True)
@@ -114,7 +114,7 @@ class RealizedVolatilityMeasure:
         u_4_3 = 2**(2/3) * math.gamma(7/6) / math.gamma(1/2)
         const = 1 / (u_4_3 ** 3)
         
-        tq_by_month = self.data.groupby(pd.Grouper(freq='ME'))['return'].apply( # à modifier ----------------------------------------------------
+        tq_by_day = self.data.groupby(pd.Grouper(freq='D'))['return'].apply(
             lambda x: const * np.sum(
                 np.abs(x.values[:-2])**(4/3) * 
                 np.abs(x.values[1:-1])**(4/3) * 
@@ -122,7 +122,7 @@ class RealizedVolatilityMeasure:
             )
         )
         
-        data_tq = tq_by_month.to_frame(name='tq')
+        data_tq = tq_by_day.to_frame(name='tq')
         
         # ajout au data_daily
         self.data_daily = pd.merge(self.data_daily, data_tq, 
@@ -145,7 +145,7 @@ class RealizedVolatilityMeasure:
         pi_term = (np.pi**2 / 4) + np.pi - 5
         
         # stats Z
-        delta = 1/78  # à modifier -----------------------------------------------------------------------------------------------
+        delta = 1/6 # car 6 fois 4 heures dans 24h
         numerator = delta**(-1/2) * (self.data_daily['rv'] - self.data_daily['bpv']) / self.data_daily['rv']
         denominator = np.sqrt(pi_term * np.maximum(1, self.data_daily['tq'] / (self.data_daily['bpv']**2)))
         self.data_daily['z_ratio'] = numerator / denominator
@@ -199,12 +199,13 @@ class RealizedVolatilityMeasure:
         return self.data_daily
     
     
-    def all_volatility_measures(self, price_col='Ouv.', alpha=0.05):
+    def all_volatility_measures(self, price_col='close', alpha=0.05):
         """
         calule toutes les mesures de volatilité et retourne un df
         
         Parameters:
         alpha (float) : significance level
+        price_col (str) : nom de colonne du prix
         
         Returns:
         pd.DataFrame: df contenant toutes les mesures de volatilité
@@ -230,17 +231,17 @@ class RealizedVolatilityMeasure:
         return self.data_daily
 
 if __name__ == '__main__':
-    # test
 
-    df_oil = pd.read_csv('data/raw/E-mini Crude Oil Futures_2007_2025.csv', delimiter=',', decimal=',')
-    df_oil['Date'] = pd.to_datetime(df_oil['Date'], format='%d/%m/%Y')
-    df_oil.index = df_oil['Date']
-    df_oil.drop(columns=['Date'], inplace = True)
+    # test
+    df_oil = pd.read_csv('data/raw/E_mini_Light_Crude_Oil_Futures_4h_2018_2025.csv', delimiter=',', decimal='.')
+    df_oil['time'] = pd.to_datetime(df_oil['time'])
+    df_oil.index = df_oil['time']
+    df_oil.drop(columns=['time'], inplace = True)
 
     rv_measure = RealizedVolatilityMeasure(df_oil)
 
     # return
-    rv_measure.calculate_returns(price_col='Ouv.')
+    rv_measure.calculate_returns(price_col='close')
     # rv
     rv_measure.realized_volatility()
     # semi-variance
