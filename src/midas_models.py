@@ -15,7 +15,7 @@ class MIDASModel:
         self.kmax = kmax
         self.options_dict = options_dict
         self.params_dict = None # dict des paramètres estimés des modeles : beta, gamma, theta
-        
+
     def weighting_function(self, k, theta1, theta2):
         """
         fonction de pondération selon l'equation (8)
@@ -92,17 +92,18 @@ class MIDASModel:
                 predictions.append(pred)
             
             # valeurs réelles
-            actual = y[:len(X) - horizon - self.kmax]
+            actual = y[self.kmax:len(X)]
             
             # calcul de la loss: HMSE
             actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
+            
             return hmse
         
         # choix des paramètres initiaux
-        initial_params = [0.1, 0.5, 1.0, 1.0]  # beta0, beta1, theta1, theta2
+        initial_params = [0.1, 0.1, 1.0, 1.0]  # beta0, beta1, theta1, theta2
         # contraintes pour theta1 et theta2 (doivent être > 0 )
-        bounds = [(None, None), (None, None), (0.01, None), (0.01, None)]
+        bounds = [(0.0, None), (0.0, None), (0.01, None), (0.01, None)]
         # optimisation
         result = minimize(loss_function, initial_params, bounds=bounds, method='L-BFGS-B', options=self.options_dict)
         # best params
@@ -148,17 +149,17 @@ class MIDASModel:
                 predictions.append(pred)
             
             # valeurs réelles
-            actual = y[:min(len(X_pos), len(X_neg)) - horizon - self.kmax]
+            actual = y[self.kmax:min(len(X_pos), len(X_neg))]
             # calcul de la loss: HMSE
             actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         
         # choix des paramètres initiaux
-        initial_params = [0.1, 0.5, 0.5, 1.7, 1.1, 1.2, 1.3]
+        initial_params = [0.1, 0.1, 0.1, 1.7, 1.1, 1.2, 1.3]
         
         # contraintes les theta doivent être > 0
-        bounds = [(None, None), (None, None), (None, None), 
+        bounds = [(0.0, None), (0.0, None), (0.0, None), 
                   (0.01, None), (0.01, None), (0.01, None), (0.01, None)]
         
         # optimisation
@@ -210,16 +211,16 @@ class MIDASModel:
                 predictions.append(pred)
             
             # valeurs réelles
-            actual = y[:min(len(X_crv), len(X_cj)) - horizon - self.kmax]
+            actual = y[self.kmax:min(len(X_crv), len(X_cj))]
             # calcul de la loss: HMSE
             actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         
         # paramètres initiaux
-        initial_params = [0.1, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0]
+        initial_params = [0.1, 0.1, 0.1, 1.0, 1.0, 1.0, 1.0]
         # contraintes : theta > 0
-        bounds = [(None, None), (None, None), (None, None), 
+        bounds = [(0.0, None), (0.0, None), (0.0, None), 
                   (0.01, None), (0.01, None), (0.01, None), (0.01, None)]
         # optimisation
         result = minimize(loss_function, initial_params, bounds=bounds, method='L-BFGS-B', options=self.options_dict)
@@ -268,16 +269,16 @@ class MIDASModel:
                 pred = beta0 + beta1 * weighted_X_rv + gamma1 * weighted_X_gpr
                 predictions.append(pred)
             # valeurs réalisés
-            actual = y[:min(len(X_rv), len(X_gpr)) - horizon - self.kmax]
+            actual = y[self.kmax:min(len(X_rv), len(X_gpr))]
             # calcul de la loss: HMSE
             actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         
         # estimation des paramètres initiaux
-        initial_params = [0.1, 0.5, 0.1, 1.0, 1.0, 1.0, 1.0]
+        initial_params = [0.1, 0.1, 0.0000001, 1.0, 1.0, 1.0, 1.0]
         # contraintes : theta > 0
-        bounds = [(None, None), (None, None), (None, None), 
+        bounds = [(0.0, None), (0.0, None), (0.0, None), 
                   (0.01, None), (0.01, None), (0.01, None), (0.01, None)]
         
         result = minimize(loss_function, initial_params, bounds=bounds, method='L-BFGS-B', options=self.options_dict)
@@ -332,16 +333,16 @@ class MIDASModel:
                 predictions.append(pred)
             
             # valeurs realisées
-            actual = y[:min_len - horizon - self.kmax]
+            actual = y[self.kmax:min_len]
             # calcul de la loss: HMSE
             actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         
         # estimation des paramètres initiaux
-        initial_params = [0.1, 0.5, 0.5, 0.1, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        initial_params = [0.1, 0.1, 0.1, 0.0000001, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         # contraintes : theta > 0
-        bounds = [(None, None), (None, None), (None, None), (None, None),
+        bounds = [(0.0, None), (0.0, None), (0.0, None), (0.0, None),
                   (0.01, None), (0.01, None), (0.01, None), (0.01, None), (0.01, None), (0.01, None)]
         # optimization
         result = minimize(loss_function, initial_params, bounds=bounds, method='L-BFGS-B', options=self.options_dict)
@@ -400,16 +401,16 @@ class MIDASModel:
                 predictions.append(pred)
 
             # valeurs réalisées
-            actual = y[:min_len - horizon - self.kmax]
+            actual = y[self.kmax:min_len]
             # calcul de la loss: HMSE
             actual = np.where(actual == 0, 1e-8, actual)
             hmse = np.mean((1 - np.array(predictions) / actual) ** 2)
             return hmse
         
         # estimation des paramètres initiaux
-        initial_params = [0.1, 0.5, 0.5, 0.1, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        initial_params = [0.1, 0.1, 0.1, 0.0000001, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         # contraintes : theta > 0
-        bounds = [(None, None), (None, None), (None, None), (None, None),
+        bounds = [(0.0, None), (0.0, None), (0.0, None), (0.0, None),
                   (0.01, None), (0.01, None), (0.01, None), (0.01, None), (0.01, None), (0.01, None)]
         # optimisation
         result = minimize(loss_function, initial_params, bounds=bounds, method='L-BFGS-B', options=self.options_dict)
