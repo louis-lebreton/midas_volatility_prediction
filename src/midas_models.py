@@ -276,7 +276,7 @@ class MIDASModel:
             return hmse
         
         # estimation des paramètres initiaux
-        initial_params = [0.1, 0.1, 0.0000001, 1.0, 1.0, 1.0, 1.0]
+        initial_params = [0.1, 0.1, 0.1, 1.0, 1.0, 1.0, 1.0]
         # contraintes : theta > 0
         bounds = [(0.0, None), (0.0, None), (0.0, None), 
                   (0.01, None), (0.01, None), (0.01, None), (0.01, None)]
@@ -340,7 +340,7 @@ class MIDASModel:
             return hmse
         
         # estimation des paramètres initiaux
-        initial_params = [0.1, 0.1, 0.1, 0.0000001, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        initial_params = [0.1, 0.1, 0.1, 0.1, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         # contraintes : theta > 0
         bounds = [(0.0, None), (0.0, None), (0.0, None), (0.0, None),
                   (0.01, None), (0.01, None), (0.01, None), (0.01, None), (0.01, None), (0.01, None)]
@@ -408,7 +408,7 @@ class MIDASModel:
             return hmse
         
         # estimation des paramètres initiaux
-        initial_params = [0.1, 0.1, 0.1, 0.0000001, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        initial_params = [0.1, 0.1, 0.1, 0.1, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         # contraintes : theta > 0
         bounds = [(0.0, None), (0.0, None), (0.0, None), (0.0, None),
                   (0.01, None), (0.01, None), (0.01, None), (0.01, None), (0.01, None), (0.01, None)]
